@@ -66,4 +66,4 @@ const viewByManager = async() => {
 };
 
 
-module.exports = viewPrompt, viewAllEmployees, viewByDepartment, viewByManager;
+module.exports = {viewPrompt, viewAllEmployees, viewByDepartment, viewByManager};

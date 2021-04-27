@@ -1,6 +1,6 @@
 const mysql = require('mysql');
 const inquirer = require('inquirer');
-
+// i think i need express here???
 
 const connection = mysql.createConnection({
     host: 'localhost',
