@@ -1,11 +1,12 @@
 const inquirer = require('inquirer');
 // add connection export?
+//add manager function?
 
 const addPrompt = async () => {
     let addChoice = await inquirer.prompt({
         name: 'view',
         type: 'list',
-        message: 'What would you like to add?',
+        message: 'What would you like to ADD?',
         choices: [
             'ADD new employee',
             'ADD new department',
