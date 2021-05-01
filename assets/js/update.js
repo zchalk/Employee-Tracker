@@ -1,6 +1,7 @@
 const inquirer = require('inquirer');
+const connection = require('../../connection');
 
-const updatePrompt = async () => {
+const updatePrompt = async (cb) => {
     let updateChoice = await inquirer.prompt({
         name: 'update',
         type: 'list',
@@ -10,119 +11,120 @@ const updatePrompt = async () => {
             'UPDATE employee manager'
         ],
     })
-    switch (updateChoice) {
+    switch (updateChoice.update) {
         // does that need to be .view?
         case 'UPDATE employee role':
-        updateRole();
+        updateRole(cb);
         break;
 
         case 'UPDATE employee manager':
-        updateManager();
+        updateManager(cb);
         break;
     }
 };
 
 const getEmployees = async() => {
-    var currentEmployees = [];
     var query = 'SELECT last_name, first_name, id FROM employees ORDER BY id'
     try {
-        let results = await connection.query(query);
-        results.forEach( result => currentEmployees.push(result.last_name));
+        let currentEmployees = await connection.query(query);
         return currentEmployees;
-    } catch (err) {
-        if (err) throw err;
-    }
-};
+        } catch (err) {
+            if (err) throw err;
+        }
+    };
 //redundancy
 const getRoles = async() => {
-    var currentRoles = [];
     var query = 'SELECT title, id FROM roles ORDER BY id';
     try {
-    let results = await connection.query(query);
+    let currentRoles = await connection.query(query);
     //how to push both first and last
-    results.forEach(result => currentRoles.push(result.last_name));
     return currentRoles;
     } catch (err) {
         if (err) throw err;
     }
     };
-const getManagers = async() => {
-    var currentManagers = [];
-    var query = 'SELECT last_name, first_name, id FROM employees WHERE manager_id IS NULL ORDER BY id';
-    try {
-    let results = await connection.query(query);
-    //how to push both first and last
-    results.forEach(result => currentManagers.push(result.last_name));
-    return currentManagers;
-    } catch (err) {
-        if (err) throw err;
-    }
-    };
+// const getManagers = async() => {
+//     var currentManagers = [];
+//     var query = 'SELECT last_name, first_name, id FROM employees WHERE manager_id IS NULL ORDER BY id';
+//     try {
+//     let results = await connection.query(query);
+//     //how to push both first and last
+//     results.forEach(result => currentManagers.push(result.last_name));
+//     return currentManagers;
+//     } catch (err) {
+//         if (err) throw err;
+//     }
+//     };
 
-const updateRole = async() => {
+const updateRole = async(cb) => {
+    const employees = await getEmployees();
+    const roles = await getRoles();
     let query = 'UPDATE employees SET ? WHERE ?'
     try {
         let newRoleInfo = await inquirer.prompt([
             {
                 name: 'employee',
-                type: 'rawlist',
-                choices: getEmployees(),
+                type: 'list',
+                choices: employees.map(employee => employee. last_name),
                 message: "Which Employee would you like to update?"
             },
             {
                 name: 'role',
-                type: 'rawlist',
-                choices: getRoles(),
+                type: 'list',
+                choices: roles.map(role => role.title),
                 message: "What will be the Employee's new Role?"
             }
         ]);
-        const employeeChoice = getEmployees().indexOf(newRoleInfo.employee) + 1;
-        const roleChoice = getRoles().indexOf(newRoleInfo.role) + 1;
-
+        let employeeChoice = employee.filter(employee => employee.last_name == newRoleInfo.role);
+        let roleChoice = roles.filter(role => role.title == newRoleInfo.role);
         await connection.query(query, [
             {
-                role_id: roleChoice,
+                role_id: roleChoice[0].id,
             },
             {
-                id: employeeChoice,
+                id: employeeChoice[0].id,
             }
-        ])
+        ]);
+        cb();
     } catch (err) {
         if (err) throw err;
     }
 };
 
-const updateManager = async() => {
+const updateManager = async(cb) => {
+    const employees = await getEmployees();
+    const managers = await getEmployees();
     let query = 'UPDATE employees SET ? WHERE ?'
     try {
         let newManagerInfo = await inquirer.prompt([
             {
                 name: 'employee',
-                type: 'rawlist',
-                choices: getEmployees(),
+                type: 'list',
+                choices: employees.map(employee => employee. last_name),
                 message: "Which Employee would you like to update?"
             },
             {
                 name: 'manager',
-                type: 'rawlist',
-                choices: getManagers(),
-                message: "What will be the Employee's new Role?"
+                type: 'list',
+                choices: managers.map(manager => manager.last_name),
+                message: "Who will be the Employee's new Manager?"
             }
         ]);
-        const employeeChoice = getEmployees().indexOf(newRoleInfo.employee) + 1;
-        const managerChoice = getManagers().indexOf(newRoleInfo.role) + 1;
+        let employeeChoice = employee.filter(employee => employee.last_name == newManagerInfo.role);
+        let managerChoice = manager.filter(manager => manager.last_name == newManagerInfo.manager);
 
         await connection.query(query, [
             {
-                manager_id: managerChoice,
+                manager_id: managerChoice[0].id,
             },
             {
-                id: employeeChoice,
+                id: employeeChoice[0].id,
             }
-        ])
+        ]);
+        cb();
     } catch (err) {
         if (err) throw err;
     }
 };
 
-module.exports = {updatePrompt, getEmployees, getRoles, getManagers, updateRole, updateManager}
+module.exports = {updatePrompt, getEmployees, getRoles, updateRole, updateManager}

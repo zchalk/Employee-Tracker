@@ -1,8 +1,9 @@
 const inquirer = require('inquirer');
+const connection = require('../../connection');
 // add connection export?
 //add manager function?
 
-const addPrompt = async () => {
+const addPrompt = async (cb) => {
     let addChoice = await inquirer.prompt({
         name: 'view',
         type: 'list',
@@ -13,60 +14,68 @@ const addPrompt = async () => {
             'ADD new role',
         ],
     })
-    switch (addChoice) {
+    switch (addChoice.view) {
         case 'ADD new employee':
-        addEmployee();
+        addEmployee(cb);
         break;
 
         case 'ADD new department':
-        addDepartment();
+        addDepartment(cb);
         break;
 
         case 'ADD new role':
-        addRole();
+        addRole(cb);
         break;
     }
 };
 
 const getDepartments = async() => {
 // double check this will empty array everytime or do i even need it, is results an array already?
-var currentDepartments = [];
 var query = 'SELECT department_name, id FROM departments ORDER BY id';
 try {
-let results = await connection.query(query);
+let currentDepartments = await connection.query(query);
+// console.log(results.department_name);
 //how to push both name and id
-results.forEach(result => currentDepartments.push(result.last_name));
+console.log(currentDepartments);
 return currentDepartments;
 } catch (err) {
     if (err) throw err;
 }
 };
 const getRoles = async() => {
-    var currentRoles = [];
     var query = 'SELECT title, id FROM roles ORDER BY id';
     try {
-    let results = await connection.query(query);
+    let currentRoles = await connection.query(query);
     //how to push both first and last
-    results.forEach(result => currentRoles.push(result.last_name));
     return currentRoles;
     } catch (err) {
         if (err) throw err;
     }
     };
-const getManagers = async() => {
-    var currentManagers = [];
-    var query = 'SELECT last_name, first_name, id FROM employees WHERE manager_id IS NULL ORDER BY id';
+const getEmployees = async() => {
+    var query = 'SELECT last_name, first_name, id FROM employees ORDER BY id'
     try {
-    let results = await connection.query(query);
-    //how to push both first and last
-    results.forEach(result => currentManagers.push(result.last_name));
-    return currentManagers;
-    } catch (err) {
-        if (err) throw err;
-    }
-    };
+        let currentEmployees = await connection.query(query);
+        return currentEmployees;
+        } catch (err) {
+            if (err) throw err;
+        }
+    };   
+// const getManagers = async() => {
+//     var query = 'SELECT last_name, first_name, id FROM employees WHERE manager_id IS NULL ORDER BY id';
+//     try {
+//     let currentManagers = await connection.query(query);
+//     //how to push both first and last
+//     results.forEach(result => currentManagers.push(result.last_name));
+//     return currentManagers;
+//     } catch (err) {
+//         if (err) throw err;
+//     }
+//     };
 
-const addEmployee = async() => {
+const addEmployee = async (cb) => {
+    const employees = await getEmployees();
+    const roles = await getRoles();
     let query = 'INSERT INTO employees SET ?'
     try {
     let newEmployeeInfo = await inquirer.prompt([
@@ -82,34 +91,34 @@ const addEmployee = async() => {
         },
         {
             name: 'role',
-            type: 'rawlist',
-            choices: getRoles(),
+            type: 'list',
+            choices: roles.map(role => role.title),
             message: "What is the new Employee's role?"
         },
         {
             name: 'manager',
-            type: 'rawlist',
-            choices: getManagers(),
+            type: 'list',
+            choices: employees.map(employee => employee.last_name),
             message: "Who is the new Employee's manager?"
         }
         ]);
         //is this calling the function again? if so probably better way to do this. call at first then use answer.choice as index in query?
-    const roleChoice = getRoles().indexOf(newEmployeeInfo.role) + 1;
-    const managerChoice = getManagers().indexOf(newEmployeeInfo.manager) + 1;
+        let roleChoice = roles.filter(role => role.title == newEmployeeInfo.role);
+        let employeeChoice = employee.filter(employee => employee.last_name == newEmployeeInfo.manager);
 
     await connection.query(query, {
         first_name: newEmployeeInfo.first_name,
         last_name: newEmployeeInfo.last_name,
-        role_id: roleChoice,
-        manager_id: managerChoice
+        role_id: roleChoice[0].id,
+        manager_id: employeeChoice[0].id
     })
-    startEmployeeTracker();
+    cb();
 } catch (err) {
     if (err) throw err;
 }
 };
 
-const addDepartment = async() => {
+const addDepartment = async(cb) => {
     let query = 'INSERT INTO departments SET ?'
     try {
         let newDepartmentInfo = await inquirer.prompt(
@@ -122,14 +131,16 @@ const addDepartment = async() => {
             await connection.query(query, {
                 department_name: newDepartmentInfo.department_name
             });
-            startEmployeeTracker();
+            cb();
     } catch (err) {
         if (err) throw err;
     }
 };
 
-const addRole = async() => {
-    let query = 'INSERT INTO roles SET ?'
+const addRole = async(cb) => {
+    let query = 'INSERT INTO roles SET ?';
+    const departments = await getDepartments();
+    console.log(departments);
     try {
         let newRoleInfo = await inquirer.prompt([
             {
@@ -144,21 +155,22 @@ const addRole = async() => {
             },
             {
                 name: 'department',
-                type: 'rawlist',
-                choices: getDepartments(),
+                type: 'list',
+                choices: departments.map(department => department.department_name),
                 message: 'Which department does this new Role belong to?'
             }
         ]);
-        const departmentChoice = getDepartments().indexOf(newRoleInfo.department) + 1;
+        let departmentChoice = departments.filter(department => department.department_name == newRoleInfo.department);
+        console.log(departmentChoice);
         await connection.query(query, {
             title: newRoleInfo.title,
-            salary: newRoleInof.salary,
-            department_id: departmentChoice
+            salary: newRoleInfo.salary,
+            department_id: departmentChoice[0].id
         });
-        startEmployeeTracker();
+        cb();
     } catch (err) {
         if (err) throw err;
     }
 };
 
-module.exports = {addPrompt, getDepartments, getRoles, getManagers, addEmployee, addDepartment, addRole}
+module.exports = {addPrompt, getDepartments, getRoles, addEmployee, addDepartment, addRole}

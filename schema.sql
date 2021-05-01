@@ -12,7 +12,7 @@ id INT NOT NULL AUTO_INCREMENT,
 title VARCHAR(30),
 salary DECIMAL,
 department_id INTEGER(10),
-PRIMARY KEY (id)
+PRIMARY KEY (id),
 FOREIGN KEY (department_id) REFERENCES departments(id)
 );
 CREATE TABLE employees (
@@ -21,6 +21,6 @@ first_name VARCHAR(30),
 last_name VARCHAR(30),
 role_id INTEGER(10),
 manager_id INTEGER(10) NULL,
-PRIMARY KEY (id)
+PRIMARY KEY (id),
 FOREIGN KEY (manager_id) REFERENCES employees(id)
 );

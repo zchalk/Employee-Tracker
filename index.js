@@ -1,15 +1,12 @@
 const mysql = require('mysql');
 const inquirer = require('inquirer');
-// i think i need express here???
+const connection = require('./connection');
+const {addPrompt} = require('./assets/js/add');
+const {viewPrompt} = require('./assets/js/view');
+const {updatePrompt} = require('./assets/js/update');
+const {deletePrompt} = require('./assets/js/delete');
+// do i need express??
 
-const connection = mysql.createConnection({
-    host: 'localhost',
-    port: process.env.PORT || 8000,
-    user: 'root',
-    password: 'password',
-    database: 'employee_recordsdb',
-
-})
 
 connection.connect((err) => {
     if (err) throw err;
@@ -29,25 +26,26 @@ const startEmployeeTracker = async () => {
             'BUDGET'
         ],
     })
-        switch (categoryChoice) {
+        switch (categoryChoice.category) {
             case 'VIEW':
-            viewPrompt();
+            viewPrompt(startEmployeeTracker);
             break;
 
             case 'ADD':
-            addPrompt();
+            addPrompt(startEmployeeTracker);
             break;
             
             case 'UPDATE':
-            updatePrompt();
+            updatePrompt(startEmployeeTracker);
             break;
 
             case 'DELETE':
-            deletePrompt();
+            deletePrompt(startEmployeeTracker);
             break;
 
             case 'BUDGET':
-            budgetPrompt();
+            budgetPrompt(startEmployeeTracker);
             break;
         }
-};
+}
+module.exports = startEmployeeTracker;
