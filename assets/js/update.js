@@ -1,5 +1,6 @@
 const inquirer = require('inquirer');
 const connection = require('../../connection');
+const {getRoles, getEmployees} = require('./get');
 
 const updatePrompt = async (cb) => {
     let updateChoice = await inquirer.prompt({
@@ -12,7 +13,6 @@ const updatePrompt = async (cb) => {
         ],
     })
     switch (updateChoice.update) {
-        // does that need to be .view?
         case 'UPDATE employee role':
         updateRole(cb);
         break;
@@ -23,39 +23,6 @@ const updatePrompt = async (cb) => {
     }
 };
 
-const getEmployees = async() => {
-    var query = 'SELECT last_name, first_name, id FROM employees ORDER BY id'
-    try {
-        let currentEmployees = await connection.query(query);
-        return currentEmployees;
-        } catch (err) {
-            if (err) throw err;
-        }
-    };
-//redundancy
-const getRoles = async() => {
-    var query = 'SELECT title, id FROM roles ORDER BY id';
-    try {
-    let currentRoles = await connection.query(query);
-    //how to push both first and last
-    return currentRoles;
-    } catch (err) {
-        if (err) throw err;
-    }
-    };
-// const getManagers = async() => {
-//     var currentManagers = [];
-//     var query = 'SELECT last_name, first_name, id FROM employees WHERE manager_id IS NULL ORDER BY id';
-//     try {
-//     let results = await connection.query(query);
-//     //how to push both first and last
-//     results.forEach(result => currentManagers.push(result.last_name));
-//     return currentManagers;
-//     } catch (err) {
-//         if (err) throw err;
-//     }
-//     };
-
 const updateRole = async(cb) => {
     const employees = await getEmployees();
     const roles = await getRoles();
@@ -65,7 +32,7 @@ const updateRole = async(cb) => {
             {
                 name: 'employee',
                 type: 'list',
-                choices: employees.map(employee => employee. last_name),
+                choices: employees.map(employee => employee.first_name),
                 message: "Which Employee would you like to update?"
             },
             {
@@ -75,7 +42,7 @@ const updateRole = async(cb) => {
                 message: "What will be the Employee's new Role?"
             }
         ]);
-        let employeeChoice = employee.filter(employee => employee.last_name == newRoleInfo.role);
+        let employeeChoice = employees.filter(employee => employee.first_name == newRoleInfo.employee);
         let roleChoice = roles.filter(role => role.title == newRoleInfo.role);
         await connection.query(query, [
             {
@@ -100,18 +67,18 @@ const updateManager = async(cb) => {
             {
                 name: 'employee',
                 type: 'list',
-                choices: employees.map(employee => employee. last_name),
+                choices: employees.map(employee => employee.first_name),
                 message: "Which Employee would you like to update?"
             },
             {
                 name: 'manager',
                 type: 'list',
-                choices: managers.map(manager => manager.last_name),
+                choices: managers.map(manager => manager.first_name),
                 message: "Who will be the Employee's new Manager?"
             }
         ]);
-        let employeeChoice = employee.filter(employee => employee.last_name == newManagerInfo.role);
-        let managerChoice = manager.filter(manager => manager.last_name == newManagerInfo.manager);
+        let employeeChoice = employees.filter(employee => employee.first_name == newManagerInfo.employee);
+        let managerChoice = managers.filter(manager => manager.first_name == newManagerInfo.manager);
 
         await connection.query(query, [
             {
@@ -127,4 +94,4 @@ const updateManager = async(cb) => {
     }
 };
 
-module.exports = {updatePrompt, getEmployees, getRoles, updateRole, updateManager}
+module.exports = {updatePrompt};

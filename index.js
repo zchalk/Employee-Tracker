@@ -5,7 +5,6 @@ const {addPrompt} = require('./assets/js/add');
 const {viewPrompt} = require('./assets/js/view');
 const {updatePrompt} = require('./assets/js/update');
 const {deletePrompt} = require('./assets/js/delete');
-// do i need express??
 
 
 connection.connect((err) => {
@@ -22,8 +21,7 @@ const startEmployeeTracker = async () => {
             'VIEW',
             'ADD',
             'UPDATE',
-            'DELETE',
-            'BUDGET'
+            'DELETE'
         ],
     })
         switch (categoryChoice.category) {
@@ -41,10 +39,6 @@ const startEmployeeTracker = async () => {
 
             case 'DELETE':
             deletePrompt(startEmployeeTracker);
-            break;
-
-            case 'BUDGET':
-            budgetPrompt(startEmployeeTracker);
             break;
         }
 }

@@ -1,9 +1,6 @@
 const inquirer = require('inquirer');
 const table = require('console.table');
 const connection = require('../../connection');
-//why is table not called?
-// add connection export?
-
 
 
 const viewPrompt = async (cb) => {
@@ -45,7 +42,7 @@ const viewAllEmployees = async(cb) => {
 
 const viewByDepartment = async(cb) => {
     try {
-        const query = 'SELECT department_name, CONCAT(last_name, " ", first_name) AS employee_name FROM employees JOIN roles ON employees.role_id = roles.id JOIN departments ON departments.id = roles.department_id ORDER BY department_name';
+        const query = 'SELECT department_name AS Department, CONCAT(last_name, " ", first_name) AS Employee FROM employees JOIN roles ON employees.role_id = roles.id JOIN departments ON departments.id = roles.department_id ORDER BY department_name';
         let dbResponse = await connection.query(query);
         console.table(dbResponse);
         cb();
@@ -56,8 +53,7 @@ const viewByDepartment = async(cb) => {
 
 const viewByManager = async(cb) => {
     try {
-        // I dont understand how to make this query
-        const query = '';
+        const query = 'SELECT a.first_name AS Manager, b.first_name AS Employee FROM employees a, employees b WHERE a.id = b.manager_id ORDER BY a.first_name';
         let dbResponse = await connection.query(query);
         console.table(dbResponse);
         cb();
@@ -67,4 +63,4 @@ const viewByManager = async(cb) => {
 };
 
 
-module.exports = {viewPrompt, viewAllEmployees, viewByDepartment, viewByManager};
+module.exports = {viewPrompt};
